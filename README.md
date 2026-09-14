@@ -47,8 +47,19 @@ puis `http://localhost:8000`.
 ## Fichiers
 
 ```
-index.html      → app complète (HTML/CSS/JS, aucune dépendance)
-manifest.json   → métadonnées PWA (nom, icônes, thème)
-sw.js           → cache hors-ligne
-icons/          → logo (icon.svg = source éditable)
+index.html      → app complète (HTML/CSS/JS, aucune dépendance externe)
+manifest.json   → métadonnées PWA (nom, icônes, thème, raccourcis)
+sw.js           → cache hors-ligne, tous les fichiers sont précachés
+icons/          → icônes, icônes maskable Android, 12 écrans de lancement iOS
+                  icon.svg = source vectorielle éditable du logo
 ```
+
+## Repères visuels
+
+Fond terre chaude plutôt que noir, pour que le rouge coquelicot du programme reste lisible sans agresser. Trois couleurs qui travaillent : le rouge pour l'effort en cours, le vert sauge pour ce qui est fait, l'ocre blé pour la course.
+
+La semaine se lit comme un rail vertical, parce qu'une semaine d'entraînement est une séquence : un nœud plein pour une séance faite, un anneau rouge pour aujourd'hui, un pointillé pour une séance annulée. Dans une séance, la jauge du haut découpe un segment par série.
+
+Les chiffres portent la mise en page. Ils sont réglés en SF Pro Rounded sur iOS, chiffres à chasse fixe, parce qu'on les lit à bout de bras, essoufflé, entre deux séries.
+
+Tous les textes passent le contraste WCAG AA sur le fond de l'app.
