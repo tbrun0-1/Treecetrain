@@ -1,6 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#1B1917"/>
-  <rect x="96" y="241" width="320" height="30" rx="15" fill="#EDE8E0"/>
-  <rect x="75" y="148" width="66" height="216" rx="18" fill="#C1432E"/>
-  <rect x="371" y="148" width="66" height="216" rx="18" fill="#C1432E"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#241F1A"/>
+      <stop offset="100%" stop-color="#0E0C0A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#922A1C" stop-opacity=".26"/>
+      <stop offset="100%" stop-color="#922A1C" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E25C42"/>
+      <stop offset="100%" stop-color="#AC2C1C"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FAF7F2"/>
+      <stop offset="100%" stop-color="#CEC6BA"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <ellipse cx="256" cy="256" rx="240" ry="150" fill="url(#glow)"/>
+  <g>
+    <rect x="132" y="146" width="74" height="221" rx="22" fill="url(#plate)"/>
+    <rect x="306" y="146" width="74" height="221" rx="22" fill="url(#plate)"/>
+    <rect x="141" y="241" width="230" height="30" rx="15" fill="url(#bar)"/>
+  </g>
 </svg>
