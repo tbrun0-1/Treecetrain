@@ -52,11 +52,13 @@
   --r-m:13px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html{background:var(--ink);}
+html{background:var(--ink);overflow-x:hidden;overflow-x:clip;}
 body{
-  margin:0;min-height:100dvh;background:var(--ink);color:var(--chalk);
+  margin:0;min-height:100dvh;width:100%;max-width:100%;
+  background:var(--ink);color:var(--chalk);
   font-family:var(--ftext);font-size:16px;line-height:1.42;
-  -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;overflow-x:clip;overscroll-behavior:none;
   padding-top:env(safe-area-inset-top);
   padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);
 }
@@ -86,11 +88,15 @@ button.danger{background:var(--pavot);border-color:var(--pavot);color:#fff;font-
 button.wide{width:100%;padding:14px;font-size:16px;border-radius:var(--r-m);}
 :focus-visible{outline:2px solid var(--ble);outline-offset:2px;}
 
+/* Pas de width globale ici : elle battait les largeurs fixes par spécificité
+   (input[type=…] pèse plus qu'une simple classe). Chaque champ déclare la sienne. */
 input[type="text"],select{font-family:var(--ftext);font-size:16px;color:var(--chalk);
   background:var(--ink-2);border:1px solid var(--line);border-radius:var(--r-s);
-  padding:8px 10px;width:100%;transition:border-color .12s;}
+  padding:8px 10px;max-width:100%;transition:border-color .12s;}
 input[type="text"]:focus{border-color:var(--line-2);outline:none;}
-select{appearance:none;-webkit-appearance:none;padding-right:30px;
+.field-row input[type="text"],.day-header input[type="text"],
+.exercise-head input[type="text"]{width:100%;}
+select{width:100%;appearance:none;-webkit-appearance:none;padding-right:30px;
   background-image:linear-gradient(45deg,transparent 50%,var(--dust) 50%),linear-gradient(135deg,var(--dust) 50%,transparent 50%);
   background-position:calc(100% - 16px) 51%,calc(100% - 11px) 51%;background-size:5px 5px;background-repeat:no-repeat;}
 
@@ -194,17 +200,17 @@ select{appearance:none;-webkit-appearance:none;padding-right:30px;
 .set-head .h-reps{width:54px;text-align:center;flex-shrink:0;}
 .set-head .h-kg{flex:1;text-align:center;}
 .sets{display:flex;flex-direction:column;gap:7px;}
-.set-row{display:flex;align-items:center;gap:8px;}
+.set-row{display:flex;align-items:center;gap:8px;max-width:100%;}
 .set-idx{width:10px;flex-shrink:0;color:var(--ash);font-family:var(--fnum);font-size:12px;}
 .set-row input{text-align:center;font-family:var(--fnum);font-variant-numeric:tabular-nums;font-size:16px;}
-.reps-in{width:54px;flex-shrink:0;}
+.set-row .reps-in{width:54px;flex:0 0 54px;}
 .tick-btn{width:28px;height:36px;flex-shrink:0;padding:0;background:var(--ink-2);
   border:1px solid var(--line);border-radius:var(--r-s);color:transparent;font-size:13px;line-height:1;}
 .tick-btn.on{background:var(--sauge);border-color:var(--sauge);color:var(--ink);font-weight:700;}
 .wgroup{display:flex;align-items:center;gap:6px;flex:1;min-width:0;}
 .wgroup button{width:34px;flex-shrink:0;padding:9px 0;font-size:16px;line-height:1;font-family:var(--fnum);color:var(--dust);}
 .wgroup button:active{background:var(--iron-2);}
-.wgroup input{flex:1;min-width:0;}
+.wgroup input{flex:1 1 0;min-width:0;width:auto;}
 .set-row.done .reps-in,.set-row.done .wgroup input{opacity:.45;}
 .add-set-btn{margin-top:11px;font-size:13.5px;color:var(--dust);}
 .add-exercise-btn{margin-top:18px;width:100%;border-style:dashed;color:var(--dust);}
@@ -260,6 +266,9 @@ select{appearance:none;-webkit-appearance:none;padding-right:30px;
 .data-actions{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:14px;}
 .data-actions button,.data-actions label{background:none;border:none;padding:4px 0;
   color:var(--dust);font-size:13.5px;cursor:pointer;font-family:var(--ftext);}
+.file-lbl{position:relative;display:inline-block;}
+.file-in{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;
+  left:0;bottom:0;border:0;padding:0;}
 
 /* ══ chrono ══ */
 .rest-bar{position:fixed;left:0;right:0;z-index:30;
@@ -396,6 +405,22 @@ function snapshotPlan(program){
   });
   return plan;
 }
+/* Un plan vide est aussi inutilisable qu'un plan absent : sans lui, plus de ligne
+   "Objectif" ni de suggestion de progression. On le reconstruit et on complète
+   toute séance que le plan importé ne couvrirait pas. */
+function ensurePlan(st){
+  var plan=st.week.plan;
+  if(!plan||typeof plan!=="object"||!Object.keys(plan).length){
+    st.week.plan=snapshotPlan(st.program);
+    return;
+  }
+  st.program.days.forEach(function(d){
+    if(plan[d.session.id]) return;
+    plan[d.session.id]=(d.session.exercises||[]).map(function(ex){
+      return {name:ex.name,sets:ex.sets.map(function(x){return {reps:x.reps,weight:x.weight};})};
+    });
+  });
+}
 function newWeek(number,program){
   return {number:number,startedAt:todayISO(),plan:snapshotPlan(program),log:{},ticks:{},adjust:{}};
 }
@@ -411,10 +436,10 @@ function load(){
       if(s&&s.program&&s.week){
         s.program=ensureIds(s.program);
         if(!s.history) s.history=[];
-        if(!s.week.plan) s.week.plan=snapshotPlan(s.program);
         if(!s.week.log) s.week.log={};
         if(!s.week.ticks) s.week.ticks={};
         if(!s.week.adjust) s.week.adjust={};
+        ensurePlan(s);
         if(!s.settings) s.settings={rest:120};
         if(typeof s.settings.rest!=="number") s.settings.rest=120;
         return s;
@@ -896,6 +921,16 @@ function refreshLiveTonnage(s){
   liveTonEl.querySelector(".tl").textContent=hv.label;
 }
 
+/* Champ numérique : tout est sélectionné à l'appui, donc on tape par-dessus
+   au lieu d'effacer chiffre par chiffre avec les mains moites. */
+function numField(cls,mode,value){
+  var i=el("input",{class:cls,type:"text",inputmode:mode,placeholder:"—",value:value,
+    autocomplete:"off",autocorrect:"off",spellcheck:false});
+  i.setAttribute("enterkeyhint","done");
+  on(i,"focus",function(){ var el2=i; setTimeout(function(){ try{ el2.select(); }catch(e){} },0); });
+  on(i,"keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); i.blur(); } });
+  return i;
+}
 function renderExercise(s,ex,idx,plan){
   var dn=countTicksEx(s.id,ex);
   var complete=ex.sets.length>0&&dn===ex.sets.length;
@@ -952,13 +987,12 @@ function renderExercise(s,ex,idx,plan){
       row.appendChild(tb);
     }
     row.appendChild(el("span",{class:"set-idx"},[t(String(si+1))]));
-    var ri=el("input",{class:"reps-in",type:"text",inputmode:"numeric",placeholder:"—",value:set.reps});
+    var ri=numField("reps-in","numeric",set.reps);
     on(ri,"input",function(e){ set.reps=e.target.value; save(); refreshLiveTonnage(s); });
     row.appendChild(ri);
 
     var wg=el("div",{class:"wgroup"});
-    var wi=el("input",{type:"text",inputmode:"decimal",placeholder:"—",
-      value:(set.weight===0?"0":(set.weight===""||set.weight===null||set.weight===undefined?"":String(set.weight).replace(".",",")))});
+    var wi=numField("","decimal",(set.weight===0?"0":(set.weight===""||set.weight===null||set.weight===undefined?"":String(set.weight).replace(".",","))));
     on(wi,"input",function(e){
       var raw=e.target.value.replace(",",".");
       set.weight=raw===""?"":(isNaN(parseFloat(raw))?raw:parseFloat(raw));
@@ -1084,9 +1118,16 @@ function renderSuivi(){
   root.appendChild(el("div",{class:"section-sub"},[t("Tout reste sur cet appareil. Exporte de temps en temps pour ne rien perdre.")]));
   var da=el("div",{class:"data-actions"});
   var ex=el("button",{type:"button"},[t("Exporter")]); on(ex,"click",exportData);
-  var lbl=el("label",{},[t("Importer")]);
-  var fi=el("input",{type:"file",accept:"application/json",style:"display:none;"});
-  on(fi,"change",function(e){ if(e.target.files[0]) importData(e.target.files[0]); });
+  /* display:none empêche Safari iOS d'ouvrir le sélecteur de fichiers :
+     le champ doit rester dans le flux, juste invisible. */
+  var lbl=el("label",{class:"file-lbl"},[t("Importer")]);
+  var fi=el("input",{type:"file",accept:".json,application/json",class:"file-in"});
+  on(fi,"change",function(e){
+    var f=e.target.files&&e.target.files[0];
+    fi.value="";
+    if(f) importData(f);
+  });
+  on(lbl,"click",function(e){ if(e.target!==fi){ e.preventDefault(); fi.click(); } });
   lbl.appendChild(fi);
   var rp=el("button",{type:"button"},[t("Réinitialiser le programme")]); on(rp,"click",resetProgram);
   var rh=el("button",{type:"button"},[t("Effacer l'historique")]); on(rh,"click",clearHistory);
@@ -1436,15 +1477,22 @@ function importData(file){
       if(p&&p.program&&p.program.days){
         state.program=ensureIds(p.program);
         state.week=p.week||newWeek(1,state.program);
-        if(!state.week.plan) state.week.plan=snapshotPlan(state.program);
+        if(!state.week.number) state.week.number=1;
+        if(!state.week.startedAt) state.week.startedAt=todayISO();
         if(!state.week.log) state.week.log={};
         if(!state.week.ticks) state.week.ticks={};
         if(!state.week.adjust) state.week.adjust={};
+        ensurePlan(state);
         state.history=p.history||[];
         if(p.settings&&typeof p.settings.rest==="number") state.settings=p.settings;
+        ui.view="week"; ui.dayId=null; ui.editing=false; ui.weekEditing=false;
         save(); render();
-      } else modal("Ce fichier ne contient pas de programme Treecetrain.");
-    }catch(err){ modal("Ce fichier ne contient pas de programme Treecetrain."); }
+        var nb=state.history.length;
+        modal("Programme importé.\n\nSemaine "+state.week.number+", "
+          +(nb?nb+" semaine"+(nb>1?"s":"")+" d'historique.":"aucun historique.")
+          +"\n"+state.program.days.length+" jours chargés.");
+      } else modal("Ce fichier ne contient pas de programme Treecetrain. Utilise un export fait depuis l'app.");
+    }catch(err){ modal("Fichier illisible. Vérifie que c'est bien un export Treecetrain au format JSON."); }
   };
   r.readAsText(file);
 }

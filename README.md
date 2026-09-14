@@ -30,6 +30,8 @@ Les runs se valident simplement, sans chiffres, avec un champ notes libre.
 
 ## Important
 
+L'import bascule automatiquement sur la vue Semaine et affiche un récapitulatif de ce qui a été chargé, pour que tu voies qu'il s'est passé quelque chose.
+
 Les données (charges, séances, historique) restent locales à l'appareil. Ce que tu modifies sur iPhone ne se synchronise pas avec un ordinateur. Dans l'onglet Suivi : **Exporter** produit un JSON de sauvegarde, **Importer** le recharge (changement d'appareil, navigateur vidé). **Réinitialiser le programme** garde l'historique, **Effacer l'historique** garde le programme.
 
 Un point à connaître : le tonnage se calcule en reps × charge. Les tractions à poids de corps comptent donc pour zéro tant que tu laisses 0 kg. Si tu passes en lesté, mets le poids ajouté.
